@@ -22,7 +22,7 @@ class Transaction {
   @Column()
   title: string;
 
-  @Column({ type: 'enum', enum: Type })
+  @Column('text')
   type: Type;
 
   @Column()
