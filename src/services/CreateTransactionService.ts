@@ -1,7 +1,8 @@
-// import AppError from '../errors/AppError';
-import { getRepository } from 'typeorm';
+import { getRepository, getCustomRepository } from 'typeorm';
+import AppError from '../errors/AppError';
 import Category from '../models/Category';
 import Transaction from '../models/Transaction';
+import TransactionsRepository from '../repositories/TransactionsRepository';
 
 interface Request {
   title: string;
@@ -24,11 +25,20 @@ class CreateTransactionService {
   }: Request): Promise<Transaction> {
     // Create Category -> Return ID.
     const categoriesRepository = getRepository(Category);
-    const transactionRepository = getRepository(Transaction);
+    const transactionRepository = getCustomRepository(TransactionsRepository);
 
     const checkCategoryExists = await categoriesRepository.findOne({
       title: category,
     });
+
+    const getBalance = await transactionRepository.getBalance();
+
+    if (type === 'outcome') {
+      const newBalance = getBalance.total - value;
+      if (newBalance < 0) {
+        throw new AppError('Sorry, your balance will be negative');
+      }
+    }
 
     if (checkCategoryExists) {
       const newTransaction = transactionRepository.create({
